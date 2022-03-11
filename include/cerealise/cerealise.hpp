@@ -4,21 +4,16 @@
 
 namespace cerealise {
 
-template <typename T> struct Adapter {
+template <typename T, class Enable = void> struct Adapter {
   template <typename TT, typename F> static bool adapt(TT &v, F &f) {
     return T::template cerealise<TT, F>(v, f);
   }
 };
 
-template <> struct Adapter<uint8_t> {
-  template <typename T, typename F> static bool adapt(T &v, F &f) {
-    return f.byte(v);
-  }
-};
-
-template <> struct Adapter<uint32_t> {
-  template <typename T, typename F> static bool adapt(T &v, F &f) {
-    return f.u32(v);
+template <typename T>
+struct Adapter<T, std::enable_if_t<std::is_integral_v<T>>> {
+  template <typename TT, typename F> static bool adapt(TT &v, F &f) {
+    return f.fixedint(v);
   }
 };
 
@@ -66,8 +61,6 @@ public:
     return true;
   }
 
-  bool u32(uint32_t &x) { return fixedint(x); }
-
   template <typename T> bool operator()(T &x) {
     return Adapter<std::remove_cv_t<T>>::template adapt<T, ParseBuf>(x, *this);
   }
@@ -114,8 +107,6 @@ public:
 
     return bytes(buf, size);
   }
-
-  bool u32(const uint32_t &x) { return fixedint(x); }
 
   template <typename T> bool operator()(const T &x) {
     return Adapter<std::remove_cv_t<T>>::template adapt<const T, UnparseBuf>(
