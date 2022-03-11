@@ -2,6 +2,7 @@
 
 #include "catch.hpp"
 #include "cerealise/cerealise.hpp"
+#include "utils.hpp"
 
 struct Test1 {
   uint8_t x;
@@ -18,19 +19,7 @@ template <> struct Adapter<Test1> {
 };
 } // namespace cerealise
 
-TEST_CASE("custom class external") {
-  Test1 v1{1, 999};
-
-  uint8_t buf[100];
-  size_t len;
-  REQUIRE(cerealise::unparse(v1, buf, 100, len));
-  REQUIRE(len == 5);
-
-  Test1 v2;
-  REQUIRE(cerealise::parse(v2, buf, len));
-
-  REQUIRE(v1 == v2);
-}
+TEST_CASE("custom class external") { check_parse_unparse<Test1>({1, 999}, 5); }
 
 struct Test2 {
   uint8_t x;
@@ -43,16 +32,4 @@ struct Test2 {
   }
 };
 
-TEST_CASE("custom class internal") {
-  Test2 v1{1, 999};
-
-  uint8_t buf[100];
-  size_t len;
-  REQUIRE(cerealise::unparse(v1, buf, 100, len));
-  REQUIRE(len == 5);
-
-  Test2 v2;
-  REQUIRE(cerealise::parse(v2, buf, len));
-
-  REQUIRE(v1 == v2);
-}
+TEST_CASE("custom class internal") { check_parse_unparse<Test2>({1, 999}, 5); }
