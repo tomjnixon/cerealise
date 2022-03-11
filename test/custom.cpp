@@ -14,7 +14,7 @@ struct Test1 {
 
 namespace userial {
 template <> struct Adapter<Test1> {
-  template <typename T, typename F> static bool adapt(T v, F f) {
+  template <typename T, typename F> static bool adapt(T &v, F &f) {
     return f(v.x) && f(v.y);
   }
 };
@@ -40,7 +40,7 @@ struct Test2 {
 
   auto operator<=>(const Test2 &) const = default;
 
-  template <typename T, typename F> static bool userial_adapt(T v, F f) {
+  template <typename T, typename F> static bool userial_adapt(T &v, F &f) {
     return f(v.x) && f(v.y);
   }
 };

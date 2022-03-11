@@ -1,21 +1,22 @@
 #pragma once
+#include <type_traits>
 
 namespace userial {
 
 template <typename T> struct Adapter {
-  template <typename TT, typename F> static bool adapt(TT v, F f) {
+  template <typename TT, typename F> static bool adapt(TT &v, F &f) {
     return T::template userial_adapt<TT, F>(v, f);
   }
 };
 
 template <> struct Adapter<uint8_t> {
-  template <typename T, typename F> static bool adapt(T v, F f) {
+  template <typename T, typename F> static bool adapt(T &v, F &f) {
     return f.byte(v);
   }
 };
 
 template <> struct Adapter<uint32_t> {
-  template <typename T, typename F> static bool adapt(T v, F f) {
+  template <typename T, typename F> static bool adapt(T &v, F &f) {
     return f.u32(v);
   }
 };
@@ -51,7 +52,7 @@ public:
   }
 
   template <typename T> bool operator()(T &x) {
-    return Adapter<T>::template adapt<T &, ParseBuf &>(x, *this);
+    return Adapter<std::remove_cv_t<T>>::template adapt<T, ParseBuf>(x, *this);
   }
 
 private:
@@ -90,7 +91,8 @@ public:
   }
 
   template <typename T> bool operator()(const T &x) {
-    return Adapter<T>::template adapt<const T &, UnparseBuf &>(x, *this);
+    return Adapter<std::remove_cv_t<T>>::template adapt<const T, UnparseBuf>(
+        x, *this);
   }
 
   size_t bytes_written() const { return pos; }
