@@ -9,7 +9,7 @@ struct Test1 {
   uint8_t x;
   uint32_t y;
 
-  auto operator<=>(const Test1&) const = default;
+  auto operator<=>(const Test1 &) const = default;
 };
 
 namespace userial {
