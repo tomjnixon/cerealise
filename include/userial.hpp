@@ -3,6 +3,18 @@
 namespace userial {
 template <typename T> struct Adapter {};
 
+template <> struct Adapter<uint8_t> {
+  template <typename T, typename F> static bool adapt(T v, F f) {
+    return f.byte(v);
+  }
+};
+
+template <> struct Adapter<uint32_t> {
+  template <typename T, typename F> static bool adapt(T v, F f) {
+    return f.u32(v);
+  }
+};
+
 class ParseBuf {
 public:
   static constexpr bool parsing = true;
@@ -33,8 +45,9 @@ public:
     return true;
   }
 
-  bool operator()(uint8_t &x) { return byte(x); }
-  bool operator()(uint32_t &x) { return u32(x); }
+  template <typename T> bool operator()(T &x) {
+    return Adapter<T>::template adapt<T &, ParseBuf &>(x, *this);
+  }
 
 private:
   uint8_t *buf;
@@ -71,8 +84,9 @@ public:
     return bytes(buf, 4);
   }
 
-  bool operator()(const uint8_t &x) { return byte(x); }
-  bool operator()(const uint32_t &x) { return u32(x); }
+  template <typename T> bool operator()(const T &x) {
+    return Adapter<T>::template adapt<const T &, UnparseBuf &>(x, *this);
+  }
 
   size_t bytes_written() const { return pos; }
 
@@ -85,13 +99,13 @@ private:
 template <typename T> inline bool parse(T &v, uint8_t *buf, size_t len) {
   ParseBuf pb(buf, len);
 
-  return Adapter<T>::template adapt<T &, ParseBuf &>(v, pb);
+  return pb(v);
 }
 template <typename T>
 inline bool unparse(const T &v, uint8_t *buf, size_t buf_len, size_t &msg_len) {
   UnparseBuf pb(buf, buf_len);
 
-  bool res = Adapter<T>::template adapt<const T &, UnparseBuf &>(v, pb);
+  bool res = pb(v);
   msg_len = pb.bytes_written();
   return res;
 }
