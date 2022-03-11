@@ -1,5 +1,4 @@
 #pragma once
-
 #include "userial.hpp"
 #include <variant>
 
