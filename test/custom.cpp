@@ -1,5 +1,5 @@
 #include "catch.hpp"
-#include "userial.hpp"
+#include "userial/userial.hpp"
 #include <string>
 
 struct Test1 {
