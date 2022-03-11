@@ -1,8 +1,9 @@
 #pragma once
-#include "userial.hpp"
+
+#include "cerealise.hpp"
 #include <variant>
 
-namespace userial {
+namespace cerealise {
 namespace detail {
 template <typename TT, typename F, typename T> bool parse_variant(TT &v, F &f) {
   T v_value;
@@ -46,4 +47,4 @@ template <typename... T> struct Adapter<std::variant<T...>> {
              std::visit([&f](auto vv) -> bool { return f(vv); }, v);
   }
 };
-} // namespace userial
+} // namespace cerealise

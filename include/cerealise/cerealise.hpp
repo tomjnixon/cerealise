@@ -2,11 +2,11 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace userial {
+namespace cerealise {
 
 template <typename T> struct Adapter {
   template <typename TT, typename F> static bool adapt(TT &v, F &f) {
-    return T::template userial_adapt<TT, F>(v, f);
+    return T::template cerealise<TT, F>(v, f);
   }
 };
 
@@ -117,4 +117,4 @@ inline bool unparse(const T &v, uint8_t *buf, size_t buf_len, size_t &msg_len) {
   msg_len = pb.bytes_written();
   return res;
 }
-} // namespace userial
+} // namespace cerealise
