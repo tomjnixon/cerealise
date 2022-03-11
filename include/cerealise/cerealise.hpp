@@ -43,14 +43,30 @@ public:
     return true;
   }
 
-  bool u32(uint32_t &x) {
-    uint8_t buf[4];
-    if (!bytes(buf, 4))
+  template <size_t size_p = 0, typename T> bool fixedint(T &x) {
+    // allow overriding size with only one parameter
+    constexpr size_t size = size_p == 0 ? sizeof(T) : size_p;
+    static_assert(size <= sizeof(T), "data size must be less than type size");
+
+    uint8_t buf[size];
+    if (!bytes(buf, size))
       return false;
-    x = (uint32_t)(buf[0]) << 24 | (uint32_t)(buf[1]) << 16 |
-        (uint32_t)(buf[2]) << 8 | (uint32_t)(buf[3]);
+
+    x = (T)0;
+    for (size_t i = 0; i < size; i++) {
+      size_t byte = (size - 1) - i;
+      x |= (T)(buf[i]) << (byte * 8);
+    }
+
+    // sign extend if necessary
+    if constexpr (std::is_signed_v<T> && size < sizeof(T)) {
+      T signbit = (T)1 << (size * 8 - 1);
+      x = (x ^ signbit) - signbit;
+    }
     return true;
   }
+
+  bool u32(uint32_t &x) { return fixedint(x); }
 
   template <typename T> bool operator()(T &x) {
     return Adapter<std::remove_cv_t<T>>::template adapt<T, ParseBuf>(x, *this);
@@ -83,13 +99,23 @@ public:
     return true;
   }
 
-  bool u32(const uint32_t &x) {
-    uint8_t buf[4];
-    for (size_t i = 0; i < 4; i++) {
-      buf[i] = (uint8_t)((x >> ((3 - i) * 8)) & 0xff);
+  template <size_t size_p = 0, typename T> bool fixedint(const T &x) {
+    // allow overriding size with only one parameter
+    constexpr size_t size = size_p == 0 ? sizeof(T) : size_p;
+    static_assert(size <= sizeof(T), "data size must be less than type size");
+
+    // TODO: check that x is within range
+
+    uint8_t buf[size];
+    for (size_t i = 0; i < size; i++) {
+      size_t byte = (size - 1) - i;
+      buf[i] = (uint8_t)((x >> (byte * 8)) & 0xff);
     }
-    return bytes(buf, 4);
+
+    return bytes(buf, size);
   }
+
+  bool u32(const uint32_t &x) { return fixedint(x); }
 
   template <typename T> bool operator()(const T &x) {
     return Adapter<std::remove_cv_t<T>>::template adapt<const T, UnparseBuf>(
