@@ -37,3 +37,8 @@ TEST_CASE("signed integers") {
   check_parse_unparse<FixedIntTest<int64_t>>({0x1234567890abcdef}, 8);
   check_parse_unparse<FixedIntTest<int64_t>>({-0x1234567890abcdef}, 8);
 }
+
+TEST_CASE("bools") {
+  check_parse_unparse<bool>(true, 1);
+  check_parse_unparse<bool>(false, 1);
+}

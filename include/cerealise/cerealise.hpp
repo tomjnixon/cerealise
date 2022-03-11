@@ -17,6 +17,12 @@ struct Adapter<T, std::enable_if_t<std::is_integral_v<T>>> {
   }
 };
 
+template <> struct Adapter<bool> {
+  template <typename TT, typename F> static bool adapt(TT &v, F &f) {
+    return f.boolean(v);
+  }
+};
+
 class ParseBuf {
 public:
   static constexpr bool parsing = true;
@@ -27,6 +33,14 @@ public:
     if (pos >= len)
       return false;
     x = buf[pos++];
+    return true;
+  }
+
+  bool boolean(bool &x) {
+    uint8_t b;
+    if (!byte(b))
+      return false;
+    x = b ? true : false;
     return true;
   }
 
@@ -83,6 +97,8 @@ public:
     buf[pos++] = x;
     return true;
   }
+
+  bool boolean(const bool &x) { return byte(x ? 1 : 0); }
 
   bool bytes(const uint8_t *p, size_t n) {
     for (size_t i = 0; i < n; i++) {
