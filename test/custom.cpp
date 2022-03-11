@@ -1,6 +1,9 @@
+#include <compare>
+#include <cstdint>
+#include <string>
+
 #include "catch.hpp"
 #include "userial/userial.hpp"
-#include <string>
 
 struct Test1 {
   uint8_t x;
