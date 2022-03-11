@@ -1,7 +1,12 @@
 #pragma once
 
 namespace userial {
-template <typename T> struct Adapter {};
+
+template <typename T> struct Adapter {
+  template <typename TT, typename F> static bool adapt(TT v, F f) {
+    return T::template userial_adapt<TT, F>(v, f);
+  }
+};
 
 template <> struct Adapter<uint8_t> {
   template <typename T, typename F> static bool adapt(T v, F f) {

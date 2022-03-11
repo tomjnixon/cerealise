@@ -33,3 +33,28 @@ TEST_CASE("custom class external") {
 
   REQUIRE(v1 == v2);
 }
+
+struct Test2 {
+  uint8_t x;
+  uint32_t y;
+
+  auto operator<=>(const Test2 &) const = default;
+
+  template <typename T, typename F> static bool userial_adapt(T v, F f) {
+    return f(v.x) && f(v.y);
+  }
+};
+
+TEST_CASE("custom class internal") {
+  Test2 v1{1, 999};
+
+  uint8_t buf[100];
+  size_t len;
+  REQUIRE(userial::unparse(v1, buf, 100, len));
+  REQUIRE(len == 5);
+
+  Test2 v2;
+  REQUIRE(userial::parse(v2, buf, len));
+
+  REQUIRE(v1 == v2);
+}
