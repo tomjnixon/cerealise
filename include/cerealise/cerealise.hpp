@@ -260,11 +260,12 @@ inline bool parse(T &v, uint8_t *buf, size_t buf_len, size_t &bytes_read) {
   return res;
 }
 template <typename T>
-inline bool unparse(const T &v, uint8_t *buf, size_t buf_len, size_t &msg_len) {
+inline bool unparse(const T &v, uint8_t *buf, size_t buf_len,
+                    size_t &bytes_written) {
   detail::UnparseBuf pb(buf, buf_len);
 
   bool res = pb(v);
-  msg_len = pb.bytes_written();
+  bytes_written = pb.bytes_written();
   return res;
 }
 } // namespace cerealise
