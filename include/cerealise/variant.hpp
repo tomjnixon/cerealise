@@ -14,9 +14,10 @@ template <typename TT, typename F, typename T> bool parse_variant(TT &v, F &f) {
     return false;
 }
 
-template <int t_idx, typename T, typename... Rest> struct VariantParseHelper {
+template <size_t t_idx, typename T, typename... Rest>
+struct VariantParseHelper {
   template <typename TT, typename F>
-  static bool run(int this_idx, TT &v, F &f) {
+  static bool run(size_t this_idx, TT &v, F &f) {
     if (this_idx == t_idx)
       return parse_variant<TT, F, T>(v, f);
     else
@@ -25,9 +26,9 @@ template <int t_idx, typename T, typename... Rest> struct VariantParseHelper {
   }
 };
 
-template <int t_idx, typename T> struct VariantParseHelper<t_idx, T> {
+template <size_t t_idx, typename T> struct VariantParseHelper<t_idx, T> {
   template <typename TT, typename F>
-  static bool run(int this_idx, TT &v, F &f) {
+  static bool run(size_t this_idx, TT &v, F &f) {
     if (this_idx != t_idx)
       return false;
     return parse_variant<TT, F, T>(v, f);
