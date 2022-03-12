@@ -1,4 +1,3 @@
-#include <compare>
 #include <variant>
 
 #include "catch.hpp"
