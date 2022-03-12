@@ -1,4 +1,5 @@
 #include <compare>
+#include <limits>
 
 #include "catch.hpp"
 #include "cerealise/cerealise.hpp"
@@ -12,6 +13,16 @@ template <typename T, size_t size = sizeof(T)> struct FixedIntTest {
   }
 
   auto operator<=>(const FixedIntTest<T, size> &) const = default;
+};
+
+template <typename T> struct VarIntTest {
+  T x;
+
+  template <typename TT, typename F> static bool cerealise(TT &v, F &f) {
+    return f.varint(v.x);
+  }
+
+  auto operator<=>(const VarIntTest<T> &) const = default;
 };
 
 TEST_CASE("unsigned integers") {
@@ -48,4 +59,23 @@ TEST_CASE("floats") {
   check_parse_unparse<float>(-123.0f, 4);
   check_parse_unparse<double>(123.0, 8);
   check_parse_unparse<double>(-123.0, 8);
+}
+
+TEST_CASE("varint") {
+  for (uint32_t i = 0; i < 0x10000; i += 32)
+    check_parse_unparse<VarIntTest<uint16_t>>({(uint16_t)i});
+
+  using limits = std::numeric_limits<int16_t>;
+  for (int32_t i = limits::min(); i <= limits::max(); i += 32)
+    check_parse_unparse<VarIntTest<int16_t>>({(int16_t)i});
+}
+
+TEST_CASE("zigzag") {
+  using namespace cerealise::detail;
+
+  using T = int32_t;
+  using limits = std::numeric_limits<T>;
+  for (T x : {limits::min(), -1, 0, 1, limits::max()}) {
+    REQUIRE(decode_zigzag(encode_zigzag(x)) == x);
+  }
 }

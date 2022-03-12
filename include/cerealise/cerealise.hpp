@@ -36,6 +36,17 @@ namespace detail {
 
 constexpr bool do_byte_swap = std::endian::native != std::endian::little;
 
+template <typename Signed, typename Unsigned = std::make_unsigned_t<Signed>>
+Unsigned encode_zigzag(Signed x) {
+  return (Unsigned)(x << 1) ^ (Unsigned)(x >> (sizeof(Signed) * 8 - 1));
+}
+
+template <typename Unsigned, typename Signed = std::make_signed_t<Unsigned>>
+Signed decode_zigzag(Unsigned x) {
+  Signed y = (Signed)(x >> 1);
+  return (x & 1) ? ~y : y;
+}
+
 class ParseBuf {
 public:
   static constexpr bool parsing = true;
@@ -105,6 +116,30 @@ public:
       return bytes((uint8_t *)&x, sizeof(T));
   }
 
+  template <typename T> bool varint(T &x) {
+    using uint = std::make_unsigned_t<T>;
+
+    uint u = 0;
+    uint8_t b;
+    do {
+      const uint high_7 = 0x7f << (sizeof(T) * 8 - 7);
+      if (high_7 & u)
+        return false; // ran out of space
+
+      if (!byte(b))
+        return false;
+
+      u = (u << 7) | (b & 0x7f);
+    } while (b & 0x80);
+
+    if constexpr (std::is_signed_v<T>)
+      x = decode_zigzag(u);
+    else
+      x = u;
+
+    return true;
+  }
+
   template <typename T> bool operator()(T &x) {
     return Adapter<std::remove_cv_t<T>>::template adapt<T, ParseBuf>(x, *this);
   }
@@ -170,6 +205,33 @@ public:
       return bytes(buf, sizeof(T));
     } else
       return bytes(x_ptr, sizeof(T));
+  }
+
+  template <typename T> bool varint(const T &x) {
+    using U = std::make_unsigned_t<T>;
+
+    U u;
+    if constexpr (std::is_signed_v<T>)
+      u = encode_zigzag(x);
+    else
+      u = x;
+
+    // find required number of bytes
+    U remainder = u;
+    size_t bytes = 0;
+    do {
+      remainder >>= 7;
+      bytes += 1;
+    } while (remainder > 0);
+
+    for (int byteno = (int)bytes - 1; byteno >= 0; byteno--) {
+      uint8_t b = (u >> (byteno * 7)) & 0x7f;
+      if (byteno > 0)
+        b |= 0x80;
+      if (!byte(b))
+        return false;
+    }
+    return true;
   }
 
   template <typename T> bool operator()(const T &x) {
