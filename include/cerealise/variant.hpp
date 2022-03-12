@@ -39,11 +39,11 @@ template <typename... T> struct Adapter<std::variant<T...>> {
   template <typename TT, typename F> static bool adapt(TT &v, F &f) {
     if constexpr (F::parsing) {
       uint32_t idx;
-      return f.u32(idx) &&
+      return f.fixedint(idx) &&
              detail::VariantParseHelper<0, T...>::template run<TT, F>(idx, v,
                                                                       f);
     } else
-      return f.u32(v.index()) &&
+      return f.fixedint((uint32_t)v.index()) &&
              std::visit([&f](auto vv) -> bool { return f(vv); }, v);
   }
 };
