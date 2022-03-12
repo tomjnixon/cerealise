@@ -9,6 +9,6 @@
 using T = std::variant<uint8_t, uint32_t>;
 
 TEST_CASE("variant") {
-  check_parse_unparse<T>((uint8_t)5, 5);
-  check_parse_unparse<T>((uint32_t)5, 8);
+  check_parse_unparse<T>((uint8_t)5, 2);
+  check_parse_unparse<T>((uint32_t)5, 5);
 }
