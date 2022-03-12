@@ -144,6 +144,8 @@ public:
     return Adapter<std::remove_cv_t<T>>::template adapt<T, ParseBuf>(x, *this);
   }
 
+  size_t bytes_read() const { return pos; }
+
 private:
   uint8_t *buf;
   size_t len;
@@ -249,10 +251,13 @@ private:
 
 } // namespace detail
 
-template <typename T> inline bool parse(T &v, uint8_t *buf, size_t len) {
-  detail::ParseBuf pb(buf, len);
+template <typename T>
+inline bool parse(T &v, uint8_t *buf, size_t buf_len, size_t &bytes_read) {
+  detail::ParseBuf pb(buf, buf_len);
 
-  return pb(v);
+  bool res = pb(v);
+  bytes_read = pb.bytes_read();
+  return res;
 }
 template <typename T>
 inline bool unparse(const T &v, uint8_t *buf, size_t buf_len, size_t &msg_len) {
