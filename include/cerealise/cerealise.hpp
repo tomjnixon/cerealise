@@ -259,6 +259,7 @@ inline bool parse(T &v, uint8_t *buf, size_t buf_len, size_t &bytes_read) {
   bytes_read = pb.bytes_read();
   return res;
 }
+
 template <typename T>
 inline bool unparse(const T &v, uint8_t *buf, size_t buf_len,
                     size_t &bytes_written) {
