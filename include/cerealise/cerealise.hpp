@@ -122,7 +122,7 @@ public:
     uint u = 0;
     uint8_t b;
     do {
-      const uint high_7 = 0x7f << (sizeof(T) * 8 - 7);
+      const uint high_7 = (uint)0x7f << (sizeof(T) * 8 - 7);
       if (high_7 & u)
         return false; // ran out of space
 
