@@ -1,4 +1,6 @@
 #pragma once
+#include <algorithm>
+#include <bit>
 #include <cstdint>
 #include <type_traits>
 
@@ -17,6 +19,13 @@ struct Adapter<T, std::enable_if_t<std::is_integral_v<T>>> {
   }
 };
 
+template <typename T>
+struct Adapter<T, std::enable_if_t<std::is_floating_point_v<T>>> {
+  template <typename TT, typename F> static bool adapt(TT &v, F &f) {
+    return f.native(v);
+  }
+};
+
 template <> struct Adapter<bool> {
   template <typename TT, typename F> static bool adapt(TT &v, F &f) {
     return f.boolean(v);
@@ -24,6 +33,8 @@ template <> struct Adapter<bool> {
 };
 
 namespace detail {
+
+constexpr bool do_byte_swap = std::endian::native != std::endian::little;
 
 class ParseBuf {
 public:
@@ -77,6 +88,23 @@ public:
     return true;
   }
 
+  template <typename T> bool native(T &x) {
+    if constexpr (do_byte_swap) {
+      uint8_t buf[sizeof(T)];
+      if (!bytes(buf, sizeof(T)))
+        return false;
+
+      for (size_t i = 0; i < sizeof(T) / 2; i++) {
+        size_t j = sizeof(T) - i;
+        std::swap(buf[i], buf[j]);
+      }
+
+      x = *(T *)&buf;
+      return true;
+    } else
+      return bytes((uint8_t *)&x, sizeof(T));
+  }
+
   template <typename T> bool operator()(T &x) {
     return Adapter<std::remove_cv_t<T>>::template adapt<T, ParseBuf>(x, *this);
   }
@@ -124,6 +152,24 @@ public:
     }
 
     return bytes(buf, size);
+  }
+
+  template <typename T> bool native(const T &x) {
+    uint8_t *x_ptr = (uint8_t *)&x;
+
+    if constexpr (do_byte_swap) {
+      uint8_t buf[sizeof(T)];
+
+      std::copy(x_ptr, x_ptr + sizeof(T), buf);
+
+      for (size_t i = 0; i < sizeof(T) / 2; i++) {
+        size_t j = sizeof(T) - i;
+        std::swap(buf[i], buf[j]);
+      }
+
+      return bytes(buf, sizeof(T));
+    } else
+      return bytes(x_ptr, sizeof(T));
   }
 
   template <typename T> bool operator()(const T &x) {

@@ -42,3 +42,10 @@ TEST_CASE("bools") {
   check_parse_unparse<bool>(true, 1);
   check_parse_unparse<bool>(false, 1);
 }
+
+TEST_CASE("floats") {
+  check_parse_unparse<float>(123.0f, 4);
+  check_parse_unparse<float>(-123.0f, 4);
+  check_parse_unparse<double>(123.0, 8);
+  check_parse_unparse<double>(-123.0, 8);
+}
