@@ -23,6 +23,8 @@ template <> struct Adapter<bool> {
   }
 };
 
+namespace detail {
+
 class ParseBuf {
 public:
   static constexpr bool parsing = true;
@@ -137,14 +139,16 @@ private:
   size_t pos = 0;
 };
 
+} // namespace detail
+
 template <typename T> inline bool parse(T &v, uint8_t *buf, size_t len) {
-  ParseBuf pb(buf, len);
+  detail::ParseBuf pb(buf, len);
 
   return pb(v);
 }
 template <typename T>
 inline bool unparse(const T &v, uint8_t *buf, size_t buf_len, size_t &msg_len) {
-  UnparseBuf pb(buf, buf_len);
+  detail::UnparseBuf pb(buf, buf_len);
 
   bool res = pb(v);
   msg_len = pb.bytes_written();
