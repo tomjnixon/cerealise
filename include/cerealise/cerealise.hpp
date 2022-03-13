@@ -249,6 +249,68 @@ private:
   size_t pos = 0;
 };
 
+class MeasureBuf {
+public:
+  static constexpr bool parsing = false;
+
+  bool byte(const uint8_t &) {
+    pos++;
+    return true;
+  }
+
+  bool boolean(const bool &) {
+    pos++;
+    return true;
+  }
+
+  bool bytes(const uint8_t *, size_t n) {
+    pos += n;
+    return true;
+  }
+
+  template <size_t size_p = 0, typename T> bool fixedint(const T &) {
+    constexpr size_t size = size_p == 0 ? sizeof(T) : size_p;
+    static_assert(size <= sizeof(T), "data size must be less than type size");
+
+    pos += size;
+    return true;
+  }
+
+  template <typename T> bool native(const T &) {
+    pos += sizeof(T);
+    return true;
+  }
+
+  template <typename T> bool varint(const T &x) {
+    using U = std::make_unsigned_t<T>;
+
+    U u;
+    if constexpr (std::is_signed_v<T>)
+      u = encode_zigzag(x);
+    else
+      u = x;
+
+    // find required number of bytes
+    U remainder = u;
+    do {
+      remainder >>= 7;
+      pos++;
+    } while (remainder > 0);
+
+    return true;
+  }
+
+  template <typename T> bool operator()(const T &x) {
+    return Adapter<std::remove_cv_t<T>>::template adapt<const T, MeasureBuf>(
+        x, *this);
+  }
+
+  size_t bytes_written() const { return pos; }
+
+private:
+  size_t pos = 0;
+};
+
 } // namespace detail
 
 template <typename T>
@@ -268,5 +330,14 @@ inline bool unparse(const T &v, uint8_t *buf, size_t buf_len,
   bool res = pb(v);
   bytes_written = pb.bytes_written();
   return res;
+}
+
+template <typename T> inline size_t measure(const T &v) {
+  detail::MeasureBuf pb;
+
+  if (!pb(v))
+    return 0;
+  else
+    return pb.bytes_written();
 }
 } // namespace cerealise
