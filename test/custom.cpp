@@ -11,13 +11,11 @@ struct Test1 {
   auto operator<=>(const Test1 &) const = default;
 };
 
-namespace cerealise {
-template <> struct Adapter<Test1> {
+template <> struct cerealise::Adapter<Test1> {
   template <typename T, typename F> static bool adapt(T &v, F &f) {
     return f(v.x) && f(v.y);
   }
 };
-} // namespace cerealise
 
 TEST_CASE("custom class external") { check_parse_unparse<Test1>({1, 999}, 5); }
 
