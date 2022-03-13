@@ -6,6 +6,7 @@ add_executable(
   custom.cpp
   string.cpp
   optional.cpp
-  variant.cpp)
+  variant.cpp
+  vector.cpp)
 target_link_libraries(tests PRIVATE cerealise)
 add_test(NAME tests COMMAND tests)
