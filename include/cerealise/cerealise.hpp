@@ -338,7 +338,7 @@ private:
 } // namespace detail
 
 template <typename T>
-inline bool parse(T &v, uint8_t *buf, size_t buf_len, size_t &bytes_read) {
+bool parse(T &v, uint8_t *buf, size_t buf_len, size_t &bytes_read) {
   detail::ParseBuf pb(buf, buf_len);
 
   bool res = pb(v);
@@ -347,8 +347,7 @@ inline bool parse(T &v, uint8_t *buf, size_t buf_len, size_t &bytes_read) {
 }
 
 template <typename T>
-inline bool unparse(const T &v, uint8_t *buf, size_t buf_len,
-                    size_t &bytes_written) {
+bool unparse(const T &v, uint8_t *buf, size_t buf_len, size_t &bytes_written) {
   detail::UnparseBuf pb(buf, buf_len);
 
   bool res = pb(v);
@@ -356,7 +355,7 @@ inline bool unparse(const T &v, uint8_t *buf, size_t buf_len,
   return res;
 }
 
-template <typename T> inline size_t measure(const T &v) {
+template <typename T> size_t measure(const T &v) {
   detail::MeasureBuf pb;
 
   if (!pb(v))
