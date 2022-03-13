@@ -6,6 +6,30 @@
 
 namespace cerealise {
 
+/// parse data from buf, writing into v
+///
+/// buf_len: length of buf, the maximum possible size
+/// bytes_read: the number of bytes read from buf
+///
+/// returns true if parsing was successful (enough data, and no other errors)
+template <typename T>
+bool parse(T &v, uint8_t *buf, size_t buf_len, size_t &bytes_read);
+
+/// serialise v into buf
+///
+/// buf_len: length of buf, the maximum possible size
+/// bytes_written: the number of bytes written to buf
+///
+/// returns true if serialisation was successful (enough space, and no other
+/// errors)
+template <typename T>
+bool unparse(const T &v, uint8_t *buf, size_t buf_len, size_t &bytes_written);
+
+/// get the number of bytes required to serialise v
+///
+/// returns 0 in case of error
+template <typename T> size_t measure(const T &v);
+
 template <typename T, class Enable = void> struct Adapter {
   template <typename TT, typename F> static bool adapt(TT &v, F &f) {
     return T::template cerealise<TT, F>(v, f);
